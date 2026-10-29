@@ -1,0 +1,35 @@
+name: OVCHI connectivity check
+on:
+  push:
+    branches: [main]
+    paths: ['.github/workflows/ovchi-connectivity.yml']
+  workflow_dispatch:
+permissions: {}
+jobs:
+  connectivity:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 2
+    steps:
+      - name: Check SSH reachability without authentication
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          import json, socket
+          result = {
+              "address": "104.248.207.201",
+              "ssh_reachable": False,
+              "ssh_banner_detected": False,
+              "droplet_identity_verified": False,
+              "authentication_attempted": False,
+              "production_changed": False,
+          }
+          try:
+              with socket.create_connection(("104.248.207.201", 22), timeout=8) as sock:
+                  result["ssh_reachable"] = True
+                  sock.settimeout(5)
+                  result["ssh_banner_detected"] = sock.recv(160).startswith(b"SSH-")
+          except OSError as exc:
+              result["error_type"] = type(exc).__name__
+              result["errno"] = exc.errno
+          print(json.dumps(result, indent=2))
+          PY
