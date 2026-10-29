@@ -1,0 +1,19 @@
+name: OVCHI SSH host key
+on:
+  push:
+    branches: [main]
+    paths: ['.github/workflows/ovchi-host-key.yml']
+  workflow_dispatch:
+permissions: {}
+jobs:
+  host-key:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 2
+    steps:
+      - name: Read public ED25519 key only
+        shell: bash
+        run: |
+          ssh-keyscan -T 8 -t ed25519 104.248.207.201 > "$RUNNER_TEMP/hostkey"
+          ssh-keygen -lf "$RUNNER_TEMP/hostkey"
+          cat "$RUNNER_TEMP/hostkey"
+          echo "No authentication or server commands attempted."
